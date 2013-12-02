@@ -14,6 +14,9 @@ public class GUI extends JPanel implements ActionListener {
     private JButton codeButton;
     private JButton cancelButton;
     private JLabel filesLabel;
+    private JProgressBar progressBar;
+
+    private List<File> files;
 
     Selectable<int[]> port;
 
@@ -35,7 +38,7 @@ public class GUI extends JPanel implements ActionListener {
         infoPane.add(filesLabel);
 
         // Add progress bar
-        JProgressBar progressBar = new JProgressBar();
+        progressBar = new JProgressBar();
         infoPane.add(progressBar);
 
         // Add "Code" and "Cancel" button vertically inside another Panel with box layout
@@ -68,16 +71,24 @@ public class GUI extends JPanel implements ActionListener {
 
         //Handle open button action.
         if (e.getSource() == codeButton) {
+            progressBar.setIndeterminate(true);
 
-            List<File> files = traverse(file, new LinkedList<File>());
+            files = traverse(file, new LinkedList<File>());
 
             filesLabel.setText(files.size() + " files" );
-
-            calculate(files);
+            progressBar.setMaximum(files.size());
+            progressBar.setValue(0);
 
             codeButton.setEnabled(false);
+
+            Thread t = new Thread(new Calculation());
+            t.start();
+
+
+//            filesLabel.setText("Done");
             //Handle save button action.
         }
+
 
         if (e.getSource() == cancelButton) {
             if (codeButton.isEnabled())
@@ -103,56 +114,6 @@ public class GUI extends JPanel implements ActionListener {
             return files;
         }
     }
-
-    private int[] calculate( List<File> files ) {
-
-        port = new Selectable<int[]>();
-
-        int filesLeft = files.size();
-
-        for (int i = 0; i < filesLeft; i++ ) {
-            File tempFile = files.get(0);
-            new HuffmanProcessor(tempFile, port);
-        }
-
-//        int[] freq = calculate();
-//
-//        for( int i = 0; i < freq.length; i++ ) {
-//            System.out.println(i + " : " + freq[i] );
-//        }
-
-        int[] finalFrequency = null;
-
-        while(filesLeft != 0) {
-
-            try {
-                int[] tempFreq = port.receive();
-
-
-                if (finalFrequency == null) {
-                    finalFrequency = tempFreq;
-                } else {
-                    for (int i = 0; i < tempFreq.length; i++) {
-                        finalFrequency[i] = finalFrequency[i] + tempFreq[i];
-                    }
-                }
-
-                filesLeft = filesLeft - 1;
-                // Decrease label value;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        for (int i=0; i < finalFrequency.length; i++) {
-            System.out.println(i + " : " + finalFrequency[i]);
-        }
-
-        return finalFrequency;
-    }
-
-
 
     public GUI() {
 
@@ -180,6 +141,59 @@ public class GUI extends JPanel implements ActionListener {
             System.exit(0);
         }
 
+    }
+
+    class Calculation extends SwingWorker {
+        /**
+         *
+         * @return
+         * @throws Exception
+         */
+        protected Object doInBackground() throws Exception {
+            port = new Selectable<int[]>();
+
+            int filesLeft = files.size();
+            Thread[] processorThreads = new Thread[filesLeft];
+
+            for (int i = 0; i < filesLeft; i++ ) {
+                File tempFile = files.get(0);
+                processorThreads[i] = new Thread( new HuffmanProcessor(tempFile, port) );
+                processorThreads[i].start();
+            }
+
+
+            int[] finalFrequency = null;
+
+            while(filesLeft != 0) {
+
+                try {
+                    int[] tempFreq = port.receive();
+
+
+                    if (finalFrequency == null) {
+                        finalFrequency = tempFreq;
+                        progressBar.setIndeterminate(false);
+                    } else {
+                        for (int i = 0; i < tempFreq.length; i++) {
+                            finalFrequency[i] = finalFrequency[i] + tempFreq[i];
+                        }
+                    }
+
+                    filesLeft = filesLeft - 1;
+                    // Decrease label value;
+                    filesLabel.setText(filesLeft + " files left to process.");
+
+                    // Make step in progress bar
+                    progressBar.setValue(progressBar.getValue() + 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            filesLabel.setText("Done! (" + progressBar.getMaximum() + " files) ");
+
+            return null;
+        }
     }
 
 }
