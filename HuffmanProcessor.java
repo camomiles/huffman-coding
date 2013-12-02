@@ -1,10 +1,8 @@
 
-import javax.swing.*;
+import mp.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -46,13 +44,13 @@ public class HuffmanProcessor implements Runnable {
 
     private File file;
 
-    private Selectable<int[]> port;
+    private Port<int[]> port;
 
 	/**
 	 * Create a new Huffman processor.  A Huffman processor provides methods to determine the coding for a given file
 	 * and write an encoded output file.
 	 */
-    public HuffmanProcessor(File f, Selectable<int[]> p) {
+    public HuffmanProcessor(File f, Port<int[]> p) {
 		hTab = new HuffmanMap(BYTESIZE+1);
 		pq = new ConcretePriorityQueue<HuffmanTree>();
 		hTree = null;

@@ -1,14 +1,12 @@
-
+package mp;
 /*
 @author  j.n.magee 20/11/96
 */
 
 
-import java.awt.*;
 import java.util.*;
-import java.applet.*;
 
-/*********************Select*****************************/
+/*********************mp.Select*****************************/
 // implements choice
 class Select {
     Vector<Selectable> list = new Vector<Selectable>(2);

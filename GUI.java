@@ -1,3 +1,5 @@
+import mp.Port;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +20,7 @@ public class GUI extends JPanel implements ActionListener {
 
     private List<File> files;
 
-    Selectable<int[]> port;
+    Port<int[]> port;
 
     private void createAndShowGUI() {
         //Create and set up the window.
@@ -81,20 +83,14 @@ public class GUI extends JPanel implements ActionListener {
 
             codeButton.setEnabled(false);
 
-            Thread t = new Thread(new Calculation());
+            Thread t = new Thread(new HuffmanCentralProcessor(files, filesLabel, progressBar));
             t.start();
 
-
-//            filesLabel.setText("Done");
-            //Handle save button action.
         }
 
 
         if (e.getSource() == cancelButton) {
-            if (codeButton.isEnabled())
-                System.exit(0);
-            else
-                codeButton.setEnabled(true);
+            System.exit(0);
         }
     }
 
@@ -143,57 +139,6 @@ public class GUI extends JPanel implements ActionListener {
 
     }
 
-    class Calculation extends SwingWorker {
-        /**
-         *
-         * @return
-         * @throws Exception
-         */
-        protected Object doInBackground() throws Exception {
-            port = new Selectable<int[]>();
 
-            int filesLeft = files.size();
-            Thread[] processorThreads = new Thread[filesLeft];
-
-            for (int i = 0; i < filesLeft; i++ ) {
-                File tempFile = files.get(0);
-                processorThreads[i] = new Thread( new HuffmanProcessor(tempFile, port) );
-                processorThreads[i].start();
-            }
-
-
-            int[] finalFrequency = null;
-
-            while(filesLeft != 0) {
-
-                try {
-                    int[] tempFreq = port.receive();
-
-
-                    if (finalFrequency == null) {
-                        finalFrequency = tempFreq;
-                        progressBar.setIndeterminate(false);
-                    } else {
-                        for (int i = 0; i < tempFreq.length; i++) {
-                            finalFrequency[i] = finalFrequency[i] + tempFreq[i];
-                        }
-                    }
-
-                    filesLeft = filesLeft - 1;
-                    // Decrease label value;
-                    filesLabel.setText(filesLeft + " files left to process.");
-
-                    // Make step in progress bar
-                    progressBar.setValue(progressBar.getValue() + 1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            filesLabel.setText("Done! (" + progressBar.getMaximum() + " files) ");
-
-            return null;
-        }
-    }
 
 }

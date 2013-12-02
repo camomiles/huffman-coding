@@ -1,3 +1,5 @@
+package mp;
+
 import java.util.Vector;
 
 /*
@@ -11,18 +13,6 @@ class Selectable<M> {
 
     Vector<M> queue = new Vector<M>();
 
-    public synchronized void send(M v) {
-        queue.addElement(v);
-        signal();
-    }
-
-    public synchronized M receive() throws InterruptedException {
-        block();
-        clearReady();
-        M tmp = queue.elementAt(0);
-        queue.removeElementAt(0);
-        return(tmp);
-    }
 
     void setSelect(Select s) {
         inchoice = s;
