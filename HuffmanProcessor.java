@@ -1,4 +1,5 @@
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.util.Vector;
  */
 
 
-public class HuffmanProcessor {
+public class HuffmanProcessor implements Runnable {
 	// Need to encode this many symbols
 	private static final int BYTESIZE = (int) Math.pow(2,8);
 
@@ -42,14 +43,23 @@ public class HuffmanProcessor {
 	// Huffman code tree: characters to code in leaf nodes, less frequently occurring characters deeper in tree
 	private HuffmanTree hTree;
 
+    private File file;
+
+    private Selectable<int[]> port;
+
 	/**
 	 * Create a new Huffman processor.  A Huffman processor provides methods to determine the coding for a given file
 	 * and write an encoded output file.
 	 */
-    public HuffmanProcessor() {
+    public HuffmanProcessor(File f, Selectable<int[]> p) {
 		hTab = new HuffmanMap(BYTESIZE+1);
 		pq = new ConcretePriorityQueue<HuffmanTree>();
 		hTree = null;
+
+        file = f;
+        port = p;
+
+        run();
 	}
 
 
@@ -57,13 +67,12 @@ public class HuffmanProcessor {
 	 * Process the file with the given path: read all the characters, counting their frequency of occurrence
 	 * then build the Huffman tree.
 	 *
-	 * @param filename path to file to process
 	 */
-    public void processFile(String filename) {
+    public void run() {
         int[] charFreq = new int[BYTESIZE+1];
 
         try {
-            FileInputStream fr = new FileInputStream(filename);
+            FileInputStream fr = new FileInputStream(file);
 
             int c = fr.read();
             
@@ -79,7 +88,9 @@ public class HuffmanProcessor {
 
         } catch (IOException ioe) { ioe.printStackTrace(); }
 
-        codeHuffmanTable(charFreq);
+        //codeHuffmanTable(charFreq);
+
+        port.send(charFreq);
     }
 
 
