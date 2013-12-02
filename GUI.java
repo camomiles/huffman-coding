@@ -1,5 +1,3 @@
-import mp.Port;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,18 +7,23 @@ import java.util.List;
 import javax.swing.*;
 
 
+/**
+ * This class creates graphical user interface for Huffman coder application,
+ * and in order to do that, it pops up JFileChooser dialog.
+ *
+ * @author Roman
+ * @version 2/12/13
+ */
 public class GUI extends JPanel implements ActionListener {
-
+    // File, specified by user.
     private File file;
-
+    // Graphical user interface elements;
     private JButton codeButton;
     private JButton cancelButton;
     private JLabel filesLabel;
     private JProgressBar progressBar;
-
+    //
     private List<File> files;
-
-    Port<int[]> port;
 
     private void createAndShowGUI() {
         //Create and set up the window.
@@ -69,37 +72,44 @@ public class GUI extends JPanel implements ActionListener {
         frame.setVisible(true);
     }
 
+    /**
+     * This method is action listener method for buttons.
+     */
     public void actionPerformed(ActionEvent e) {
-
-        //Handle open button action.
+        //Handle "Code" button action.
         if (e.getSource() == codeButton) {
+            // Set progress bar into indeterminate state.
             progressBar.setIndeterminate(true);
-
-            files = traverse(file, new LinkedList<File>());
-
+            // Traverse all subdirectories (if any) and make list of files inside.
+            files = makeFilesList(file, new LinkedList<File>());
+            // Update label to show files count.
             filesLabel.setText(files.size() + " files" );
+            // Set progress bar maximum value
             progressBar.setMaximum(files.size());
+            // Set progress bar current value (0)
             progressBar.setValue(0);
-
+            // Disable "Code" button.
             codeButton.setEnabled(false);
-
+            // Run Huffman central processor as background job.
             Thread t = new Thread(new HuffmanCentralProcessor(files, filesLabel, progressBar));
             t.start();
-
         }
-
-
+        // Handle "Cancel" button
         if (e.getSource() == cancelButton) {
             System.exit(0);
         }
     }
 
-    private List<File> traverse(File folder, List<File> files) {
+    /**
+     * This method recursively traverses directory specified by user, and returns a list of files
+     * for Central Processor to operate over.
+     */
+    private List<File> makeFilesList(File folder, List<File> files) {
         if ( folder.isDirectory() ) {
             File[] filesArray = folder.listFiles();
             for (File file: filesArray) {
                 if ( folder.isDirectory() ) {
-                    traverse(file, files);
+                    makeFilesList(file, files);
                 } else {
                     files.add(file);
                 }
@@ -110,18 +120,18 @@ public class GUI extends JPanel implements ActionListener {
             return files;
         }
     }
-
+    /**
+     * This is builder class for graphical user interface.
+     */
     public GUI() {
-
+        // Create new JFileChooser to choose file/folder to be encoded.
         JFileChooser fc = new JFileChooser();
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
+        // Pop it up.
         int returnVal = fc.showOpenDialog(GUI.this);
-
+        // Process the result.
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             file = fc.getSelectedFile();
-            //This is where a real application would open the file.
-            System.out.println("Opening: " + file.getName() + "." );
 
             //Schedule a job for the event-dispatching thread:
             //creating and showing this application's GUI.
@@ -130,15 +140,11 @@ public class GUI extends JPanel implements ActionListener {
                     createAndShowGUI();
                 }
             });
-
         } else {
-
-            System.out.println("Open command cancelled by user.");
+            // Exit if "Cancel" button clicked in JFileChooser dialog.
             System.exit(0);
         }
 
     }
-
-
 
 }

@@ -1,16 +1,14 @@
 
 /**
- * Main program for Huffman encoder.  Creates the Huffman processor and directs it to encode
- * the file given as the first command line argument and write to the file given as the
- * second command line argument.
+ * Main program for GUI-based Huffman encoder.
  *
- * @author PAS
- * @version 7/10/11
+ * @author Roman Yakobnyuk
+ * @version 2/12/13
  */
  
 public class Main {
 	/**
-	 * Huffman coding
+	 * This method serves as starting point for Hoffman coder GUI-based application.
 	 *
 	 */
 	public static void main(String [] args) {
@@ -18,6 +16,5 @@ public class Main {
         // Create new GUI
 
         GUI userInterface = new GUI();
-
 	}
 }
